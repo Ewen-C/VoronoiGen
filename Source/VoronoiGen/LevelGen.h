@@ -5,21 +5,9 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Engine/World.h"
-#include "DrawDebugHelpers.h"
-#include "Runtime/Engine/Classes/Components/SceneComponent.h"
-#include "Containers/Set.h"
 #include "Math/UnrealMathUtility.h"
+#include "CompGeom/Delaunay2.h"
 #include "LevelGen.generated.h"
-
-USTRUCT()
-struct FTriangle
-{
-    GENERATED_BODY()
-    FVector Vertex1, Vertex2, Vertex3;
-	
-    FTriangle() : Vertex1(FVector::ZeroVector), Vertex2(FVector::ZeroVector), Vertex3(FVector::ZeroVector){}
-    FTriangle(const FVector& a, const FVector& b, const FVector& c) : Vertex1(a), Vertex2(b), Vertex3(c) {}
-};
 
 UCLASS()
 class VORONOIGEN_API ALevelGen : public AActor
@@ -39,12 +27,8 @@ public:
 		USceneComponent* SceneComponent;
 
 	UFUNCTION()
-		TArray<FVector> GenerateRandPoints(int NumberOfPoints, float SpacingSize);
+		TArray<FVector2D> GenerateRandPoints(int NumberOfPoints, float SpacingSize);
 
     UFUNCTION()
-		void DelaunayTriangulation(const TArray<FVector>& Points);
-
-private:
-    UFUNCTION()
-		void DrawTriangle(const FTriangle& T);
+		void DelaunayTriangulation(const TArray<FVector2D>& Points);
 };

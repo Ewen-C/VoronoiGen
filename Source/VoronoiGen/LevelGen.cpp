@@ -2,6 +2,7 @@
 
 #include "LevelGen.h"
 
+
 // Sets default values
 ALevelGen::ALevelGen()
 {
@@ -16,48 +17,53 @@ void ALevelGen::BeginPlay()
 	Super::BeginPlay();
 	UE_LOG(LogTemp, Warning, TEXT("Actor Location : %s"), *GetActorLocation().ToString());
 	
-	TArray<FVector> MyPoints = GenerateRandPoints(10, 2500);	
+	const TArray<FVector2D> MyPoints = GenerateRandPoints(10, 2500);	
     DelaunayTriangulation(MyPoints);
 }
 
-TArray<FVector> ALevelGen::GenerateRandPoints(int NumberOfPoints, float SpacingSize)
+TArray<FVector2D> ALevelGen::GenerateRandPoints(const int NumberOfPoints, const float SpacingSize)
 {
-	TArray<FVector> points;
+	TArray<FVector2D> MyPoints;
 
 	for(int i = 0; i < NumberOfPoints; i++)
 	{
 		float pointX = FMath::FRandRange(0., SpacingSize);
 		float pointY = FMath::FRandRange(0., SpacingSize);
 
-		points.Add(FVector(pointX, pointY, 50.));
+		MyPoints.Add(FVector2D(pointX, pointY));
 
 		// Draw debug spheres at each point location
-		DrawDebugSphere(GetWorld(), GetActorLocation() + FVector(pointX, pointY, 50.),
-			20.0f, 12, FColor::Red, false, 3600.f);
+		DrawDebugPoint(GetWorld(), GetActorLocation() + FVector(pointX, pointY, 10.),
+			20.0f, FColor::Black, true);
 	}
 
-	return points;
+	return MyPoints;
 }
 
-void ALevelGen::DelaunayTriangulation(const TArray<FVector>& MyPoints)
+void ALevelGen::DelaunayTriangulation(const TArray<FVector2D>& MyPoints)
 {
 	if(MyPoints.Num() < 3) return;
 
-	UE::Geometry::FDelaunay2 delaunay;
-	
-	for (int i = 0; i < MyPoints.Num(); ++i)
+	UE::Geometry::FDelaunay2 MyDelaunay;
+	MyDelaunay.bAutomaticallyFixEdgesToDuplicateVertices = true;
+	if( !MyDelaunay.Triangulate(MyPoints) ) return;
+
+	TArray<TArray<FVector2D>> VoronoiCells = MyDelaunay.GetVoronoiCells(MyPoints, false);
+
+	for (auto VoronoiCell : VoronoiCells)
 	{
-		DrawTriangle(FTriangle(MyPoints[i], MyPoints[(i+1) % MyPoints.Num()], MyPoints[(i+2) % MyPoints.Num()]));
+		if(!VoronoiCell.Num()) continue;
+		UE_LOG(LogTemp, Warning, TEXT("Nb edges Voronoi : %d"), VoronoiCell.Num());
+		
+		DrawDebugLine(GetWorld(), FVector(VoronoiCell[VoronoiCell.Num() - 1], 10), FVector(VoronoiCell[0], 10),
+			FColor::Red, true, -1, 0, 4);
+		
+		for (int i = 0; i < VoronoiCell.Num() - 1; ++i)
+		{
+			DrawDebugLine(GetWorld(), FVector(VoronoiCell[i], 10), FVector(VoronoiCell[i+1], 10),
+				FColor::Red, true, -1, 0, 4);
+		}
+		
 	}
-}
-
-void ALevelGen::DrawTriangle(const FTriangle& T)
-{
-    FVector SpawnLocationA = GetActorLocation() + T.Vertex1;
-    FVector SpawnLocationB = GetActorLocation() + T.Vertex2;
-    FVector SpawnLocationC = GetActorLocation() + T.Vertex3;
-
-    DrawDebugLine(GetWorld(), SpawnLocationA, SpawnLocationB, FColor::Green, true, 3600.f, 0, 2.f);
-    DrawDebugLine(GetWorld(), SpawnLocationB, SpawnLocationC, FColor::Green, true, 3600.f, 0, 2.f);
-    DrawDebugLine(GetWorld(), SpawnLocationC, SpawnLocationA, FColor::Green, true, 3600.f, 0, 2.f);
+	
 }
