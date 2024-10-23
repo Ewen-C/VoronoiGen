@@ -27,8 +27,11 @@ public:
 		USceneComponent* SceneComponent;
 
 	UFUNCTION()
-		TArray<FVector2D> GenerateRandPoints(int NumberOfPoints, float SpacingSize);
+		void GenerateRandPoints(int NumberOfPoints, float SpacingSize);
 
     UFUNCTION()
-		void DelaunayTriangulation(const TArray<FVector2D>& Points);
+		void DelaunayTriangulation(float SpacingSize);
+
+private:
+	TArray<FVector2D> PointCloud;
 };

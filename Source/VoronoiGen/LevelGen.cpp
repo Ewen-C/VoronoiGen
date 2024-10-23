@@ -17,53 +17,61 @@ void ALevelGen::BeginPlay()
 	Super::BeginPlay();
 	UE_LOG(LogTemp, Warning, TEXT("Actor Location : %s"), *GetActorLocation().ToString());
 	
-	const TArray<FVector2D> MyPoints = GenerateRandPoints(10, 2500);	
-    DelaunayTriangulation(MyPoints);
+	GenerateRandPoints(50, 2000);	
+    DelaunayTriangulation(2000);
 }
 
-TArray<FVector2D> ALevelGen::GenerateRandPoints(const int NumberOfPoints, const float SpacingSize)
+void ALevelGen::GenerateRandPoints(const int NumberOfPoints, const float SpacingSize)
 {
-	TArray<FVector2D> MyPoints;
+	PointCloud.Empty();
 
 	for(int i = 0; i < NumberOfPoints; i++)
 	{
-		float pointX = FMath::FRandRange(0., SpacingSize);
-		float pointY = FMath::FRandRange(0., SpacingSize);
+		float pointX = FMath::RandRange(0.f, SpacingSize);
+		float pointY = FMath::RandRange(0.f, SpacingSize);
 
-		MyPoints.Add(FVector2D(pointX, pointY));
-
-		// Draw debug spheres at each point location
-		DrawDebugPoint(GetWorld(), GetActorLocation() + FVector(pointX, pointY, 10.),
-			20.0f, FColor::Black, true);
+		PointCloud.Add(FVector2D(pointX, pointY));
 	}
 
-	return MyPoints;
+	for (const FVector2D Point : PointCloud)
+	{
+		DrawDebugPoint(GetWorld(), FVector(Point, 0.0f), 10.0f, FColor::Black, true);
+	}
 }
 
-void ALevelGen::DelaunayTriangulation(const TArray<FVector2D>& MyPoints)
+void ALevelGen::DelaunayTriangulation(const float SpacingSize)
 {
-	if(MyPoints.Num() < 3) return;
-
 	UE::Geometry::FDelaunay2 MyDelaunay;
 	MyDelaunay.bAutomaticallyFixEdgesToDuplicateVertices = true;
-	if( !MyDelaunay.Triangulate(MyPoints) ) return;
+	MyDelaunay.Triangulate(PointCloud);
 
-	TArray<TArray<FVector2D>> VoronoiCells = MyDelaunay.GetVoronoiCells(MyPoints, false);
+	UE::Geometry::FAxisAlignedBox2d Bounds(FVector2D(0.f, 0.f), FVector2D(SpacingSize, SpacingSize));
 
-	for (auto VoronoiCell : VoronoiCells)
+	// TArray<TArray<FVector2D>> VoronoiCells = MyDelaunay.GetVoronoiCells(PointCloud, false);
+	TArray<TArray<FVector2D>> VoronoiCells = MyDelaunay.GetVoronoiCells(PointCloud, true, Bounds, 0);
+
+	// for (const TArray<FVector2D> VoronoiCell : VoronoiCells)
+	// {
+	// 	if(!VoronoiCell.Num()) continue;
+	// 	UE_LOG(LogTemp, Warning, TEXT("Nb edges Voronoi : %d"), VoronoiCell.Num());
+	// 	
+	// 	DrawDebugLine(GetWorld(), FVector(VoronoiCell[VoronoiCell.Num() - 1], 10), FVector(VoronoiCell[0], 10),
+	// 		FColor::Red, true, -1, 0, 4);
+	// 	
+	// 	for (int i = 0; i < VoronoiCell.Num() - 1; ++i)
+	// 	{
+	// 		DrawDebugLine(GetWorld(), FVector(VoronoiCell[i], 10), FVector(VoronoiCell[i+1], 10),
+	// 			FColor::Red, true, -1, 0, 4);
+	// 	}
+	// }
+
+	for (const TArray<FVector2D>& VoronoiCell : VoronoiCells)
 	{
-		if(!VoronoiCell.Num()) continue;
-		UE_LOG(LogTemp, Warning, TEXT("Nb edges Voronoi : %d"), VoronoiCell.Num());
-		
-		DrawDebugLine(GetWorld(), FVector(VoronoiCell[VoronoiCell.Num() - 1], 10), FVector(VoronoiCell[0], 10),
-			FColor::Red, true, -1, 0, 4);
-		
-		for (int i = 0; i < VoronoiCell.Num() - 1; ++i)
+		for (int32 i = 0; i < VoronoiCell.Num(); ++i)
 		{
-			DrawDebugLine(GetWorld(), FVector(VoronoiCell[i], 10), FVector(VoronoiCell[i+1], 10),
+			DrawDebugLine(GetWorld(), FVector(VoronoiCell[i], 0), FVector(VoronoiCell[(i+1) % VoronoiCell.Num()], 0),
 				FColor::Red, true, -1, 0, 4);
 		}
-		
 	}
 	
 }
