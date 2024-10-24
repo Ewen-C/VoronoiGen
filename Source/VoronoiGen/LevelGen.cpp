@@ -85,12 +85,13 @@ void ALevelGen::BeginPlay()
     if (AdjacencyList.Num() == 0) return;
     
     MinimumSpanningTree.Empty();
-    TSet<int32> VisitedVertices;
-    TArray<FGraphEdge> PriorityQueue; // TArray with heap properties
-    
-    int32 StartVertex = AdjacencyList.CreateConstIterator().Key();
+    TSet<int32> VisitedVertices; // Unique list of the points already checked
+    TArray<FGraphEdge> PriorityQueue; // TArray with heap properties - binary tree always automatically sorted by shortest values
+
+	// Add first point, add its edges to the priority queue
+	int32 StartVertex = AdjacencyList.CreateConstIterator().Key(); 
     VisitedVertices.Add(StartVertex);
-    
+
     for (const FGraphEdge& Edge : AdjacencyList[StartVertex])
 		PriorityQueue.HeapPush(Edge, [](const FGraphEdge& A, const FGraphEdge& B) { return A.Length > B.Length; });
     
@@ -98,18 +99,20 @@ void ALevelGen::BeginPlay()
 	
     while (PriorityQueue.Num() > 0 && VisitedVertices.Num() < AdjacencyList.Num())
     {
-        // Check minimum weight edge
+        // Check all edges and takes the shortest one -> CurrentEdge grabs it then it's removed from PriorityQueue
         FGraphEdge CurrentEdge;
         PriorityQueue.HeapPop(CurrentEdge, [](const FGraphEdge& A, const FGraphEdge& B) { return A.Length > B.Length; });
-        
-        if (VisitedVertices.Contains(CurrentEdge.ToVertex)) continue;
+
+    	// Skips visited points, add new ones 
+        if (VisitedVertices.Contains(CurrentEdge.ToVertex)) continue; 
         MinimumSpanningTree.Add(CurrentEdge);
         VisitedVertices.Add(CurrentEdge.ToVertex);
-        
-        for (const FGraphEdge& Edge : AdjacencyList[CurrentEdge.ToVertex])
+
+    	// Add new edges to check, added in the shortest
+        for (const FGraphEdge& NewEdges : AdjacencyList[CurrentEdge.ToVertex])
         {
-            if (!VisitedVertices.Contains(Edge.ToVertex))
-				PriorityQueue.HeapPush(Edge, [](const FGraphEdge& A, const FGraphEdge& B) { return A.Length > B.Length; });
+            if (!VisitedVertices.Contains(NewEdges.ToVertex))
+				PriorityQueue.HeapPush(NewEdges, [](const FGraphEdge& A, const FGraphEdge& B) { return A.Length > B.Length; });
         }
     }
 	
