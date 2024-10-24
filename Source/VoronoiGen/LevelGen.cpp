@@ -93,7 +93,7 @@ void ALevelGen::BeginPlay()
     VisitedVertices.Add(StartVertex);
 
     for (const FGraphEdge& Edge : AdjacencyList[StartVertex])
-		PriorityQueue.HeapPush(Edge, [](const FGraphEdge& A, const FGraphEdge& B) { return A.Length > B.Length; });
+		PriorityQueue.HeapPush(Edge, [](const FGraphEdge& A, const FGraphEdge& B) { return A.Length < B.Length; });
     
     // Step 3 : Prim's algorithm
 	
@@ -101,7 +101,7 @@ void ALevelGen::BeginPlay()
     {
         // Check all edges and takes the shortest one -> CurrentEdge grabs it then it's removed from PriorityQueue
         FGraphEdge CurrentEdge;
-        PriorityQueue.HeapPop(CurrentEdge, [](const FGraphEdge& A, const FGraphEdge& B) { return A.Length > B.Length; });
+        PriorityQueue.HeapPop(CurrentEdge, [](const FGraphEdge& A, const FGraphEdge& B) { return A.Length < B.Length; });
 
     	// Skips visited points, add new ones 
         if (VisitedVertices.Contains(CurrentEdge.ToVertex)) continue; 
@@ -112,7 +112,7 @@ void ALevelGen::BeginPlay()
         for (const FGraphEdge& NewEdges : AdjacencyList[CurrentEdge.ToVertex])
         {
             if (!VisitedVertices.Contains(NewEdges.ToVertex))
-				PriorityQueue.HeapPush(NewEdges, [](const FGraphEdge& A, const FGraphEdge& B) { return A.Length > B.Length; });
+				PriorityQueue.HeapPush(NewEdges, [](const FGraphEdge& A, const FGraphEdge& B) { return A.Length < B.Length; });
         }
     }
 	

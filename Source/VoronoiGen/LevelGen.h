@@ -17,9 +17,9 @@ struct FGraphEdge
     int32 ToVertex;
     float Length;
     
-    bool operator > (const FGraphEdge& Other) const
+    bool operator < (const FGraphEdge& Other) const
     {
-        return Length > Other.Length;
+        return Length < Other.Length;
     }
 };
 
