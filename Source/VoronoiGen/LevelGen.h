@@ -42,6 +42,10 @@ public:
 
 	UFUNCTION()
 		void GenerateRandPoints(int NumberOfPoints);
+	
+	// Simple C++ classes doesn't have UFUNCTION limitations ! (⊙o⊙)
+	TArray<TArray<FVector2D>> Test(int NumberOfPoints);
+	UE::Geometry::FDelaunay2 Test2(int NumberOfPoints);
 
 private:
     UPROPERTY(EditAnywhere, Category = "Generation")

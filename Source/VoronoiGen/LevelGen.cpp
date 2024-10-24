@@ -31,16 +31,15 @@ void ALevelGen::BeginPlay()
 
 	for (int i = 0; i < MyTriangles.Num() - 1; i++)
 	{
-        DrawDebugLine( GetWorld(), FVector(MyPoints[MyTriangles[i].A], 0), FVector(MyPoints[MyTriangles[i].B], 0),
+        DrawDebugLine( GetWorld(), FVector(MyPoints[MyTriangles[i].A], 10), FVector(MyPoints[MyTriangles[i].B], 10),
             FColor::Blue, true, -1, 0, 2 );
-        DrawDebugLine( GetWorld(), FVector(MyPoints[MyTriangles[i].B], 0), FVector(MyPoints[MyTriangles[i].C], 0),
+        DrawDebugLine( GetWorld(), FVector(MyPoints[MyTriangles[i].B], 10), FVector(MyPoints[MyTriangles[i].C], 10),
             FColor::Blue, true, -1, 0, 2 );
-        DrawDebugLine( GetWorld(), FVector(MyPoints[MyTriangles[i].C], 0), FVector(MyPoints[MyTriangles[i].A], 0),
+        DrawDebugLine( GetWorld(), FVector(MyPoints[MyTriangles[i].C], 10), FVector(MyPoints[MyTriangles[i].A], 10),
             FColor::Blue, true, -1, 0, 2 );
 	}
 
 	// Voronoi generation
-	// Can't pass TArray<TArray<FVector2D>> to a function ¯\_(ツ)_/¯
 
 	UE::Geometry::FAxisAlignedBox2d Bounds(FVector2D(0.f, 0.f), FVector2D(SpacingSize, SpacingSize));
 	TArray<TArray<FVector2D>> VoronoiCells = MyDelaunay.GetVoronoiCells(MyPoints, true, Bounds, 0);
@@ -49,13 +48,12 @@ void ALevelGen::BeginPlay()
 	{
 		for (int32 i = 0; i < VoronoiCell.Num(); ++i)
 		{
-			DrawDebugLine(GetWorld(), FVector(VoronoiCell[i], 0), FVector(VoronoiCell[(i+1) % VoronoiCell.Num()], 0),
+			DrawDebugLine(GetWorld(), FVector(VoronoiCell[i], 10), FVector(VoronoiCell[(i+1) % VoronoiCell.Num()], 0),
 				FColor::Red, true, -1, 0, 4);
 		}
 	}
 
 	// Minimum Spanning Tree construction
-	// Can't pass UE::Geometry::FDelaunay2 or UE::Geometry::FIndex3i to a function ¯\_(ツ)_/¯
 
 	// Edges must not be from bounds to bounds
 	// Edges must not be checked twice
@@ -118,7 +116,7 @@ void ALevelGen::BeginPlay()
 	
     for (const FGraphEdge& Edge : MinimumSpanningTree)
     {
-        DrawDebugLine( GetWorld(), FVector(MyPoints[Edge.FromVertex], 0), FVector(MyPoints[Edge.ToVertex], 0),
+        DrawDebugLine( GetWorld(), FVector(MyPoints[Edge.FromVertex], 10), FVector(MyPoints[Edge.ToVertex], 0),
             FColor::Green, true, -1, 0, 16 );
     }
 	
@@ -138,7 +136,7 @@ void ALevelGen::GenerateRandPoints(const int NumberOfPoints)
 
 	for (const FVector2D Point : MyPoints)
 	{
-		DrawDebugPoint(GetWorld(), FVector(Point, 0.0f), 10.0f, FColor::Black, true);
+		DrawDebugPoint(GetWorld(), FVector(Point, 10.0f), 10.0f, FColor::Black, true);
 	}
 }
 
