@@ -16,54 +16,33 @@ void ALevelGen::BeginPlay()
 {
 	Super::BeginPlay();
 	UE_LOG(LogTemp, Warning, TEXT("Actor Location : %s"), *GetActorLocation().ToString());
+
+	// Points setup
 	
-	GenerateRandPoints(50, 2000);	
-    DelaunayTriangulation(2000);
-}
+	GenerateRandPoints(NbPoints);
 
-void ALevelGen::GenerateRandPoints(const int NumberOfPoints, const float SpacingSize)
-{
-	PointCloud.Empty();
-
-	for(int i = 0; i < NumberOfPoints; i++)
-	{
-		float pointX = FMath::RandRange(0.f, SpacingSize);
-		float pointY = FMath::RandRange(0.f, SpacingSize);
-
-		PointCloud.Add(FVector2D(pointX, pointY));
-	}
-
-	for (const FVector2D Point : PointCloud)
-	{
-		DrawDebugPoint(GetWorld(), FVector(Point, 0.0f), 10.0f, FColor::Black, true);
-	}
-}
-
-void ALevelGen::DelaunayTriangulation(const float SpacingSize)
-{
+	// Delaunay triangulation
+	
 	UE::Geometry::FDelaunay2 MyDelaunay;
 	MyDelaunay.bAutomaticallyFixEdgesToDuplicateVertices = true;
-	MyDelaunay.Triangulate(PointCloud);
+	MyDelaunay.Triangulate(MyPoints);
+	
+    TArray<UE::Geometry::FIndex3i> Triangles = MyDelaunay.GetTriangles();
+
+	for (int i = 0; i < Triangles.Num() - 1; i++)
+	{
+        DrawDebugLine( GetWorld(), FVector(MyPoints[Triangles[i].A], 0), FVector(MyPoints[Triangles[i].B], 0),
+            FColor::Blue, true, -1, 0, 2 );
+        DrawDebugLine( GetWorld(), FVector(MyPoints[Triangles[i].B], 0), FVector(MyPoints[Triangles[i].C], 0),
+            FColor::Blue, true, -1, 0, 2 );
+        DrawDebugLine( GetWorld(), FVector(MyPoints[Triangles[i].C], 0), FVector(MyPoints[Triangles[i].A], 0),
+            FColor::Blue, true, -1, 0, 2 );
+	}
+
+	// Voronoi generation - can't pass TArray<TArray<FVector2D>> to a function ¯\_(ツ)_/¯
 
 	UE::Geometry::FAxisAlignedBox2d Bounds(FVector2D(0.f, 0.f), FVector2D(SpacingSize, SpacingSize));
-
-	// TArray<TArray<FVector2D>> VoronoiCells = MyDelaunay.GetVoronoiCells(PointCloud, false);
-	TArray<TArray<FVector2D>> VoronoiCells = MyDelaunay.GetVoronoiCells(PointCloud, true, Bounds, 0);
-
-	// for (const TArray<FVector2D> VoronoiCell : VoronoiCells)
-	// {
-	// 	if(!VoronoiCell.Num()) continue;
-	// 	UE_LOG(LogTemp, Warning, TEXT("Nb edges Voronoi : %d"), VoronoiCell.Num());
-	// 	
-	// 	DrawDebugLine(GetWorld(), FVector(VoronoiCell[VoronoiCell.Num() - 1], 10), FVector(VoronoiCell[0], 10),
-	// 		FColor::Red, true, -1, 0, 4);
-	// 	
-	// 	for (int i = 0; i < VoronoiCell.Num() - 1; ++i)
-	// 	{
-	// 		DrawDebugLine(GetWorld(), FVector(VoronoiCell[i], 10), FVector(VoronoiCell[i+1], 10),
-	// 			FColor::Red, true, -1, 0, 4);
-	// 	}
-	// }
+	TArray<TArray<FVector2D>> VoronoiCells = MyDelaunay.GetVoronoiCells(MyPoints, true, Bounds, 0);
 
 	for (const TArray<FVector2D>& VoronoiCell : VoronoiCells)
 	{
@@ -73,5 +52,38 @@ void ALevelGen::DelaunayTriangulation(const float SpacingSize)
 				FColor::Red, true, -1, 0, 4);
 		}
 	}
+
+
+	// Minimum Spanning Tree construction
+
+	// Edges must not be part of bounds
+	// Edges must not be checked twice
+	
+
+	for(const TArray<FVector2D>& VoronoiCell : VoronoiCells)
+	{
+
+	}
+
+	
 	
 }
+
+void ALevelGen::GenerateRandPoints(const int NumberOfPoints)
+{
+	MyPoints.Empty();
+
+	for(int i = 0; i < NumberOfPoints; i++)
+	{
+		float pointX = FMath::RandRange(0.f, SpacingSize);
+		float pointY = FMath::RandRange(0.f, SpacingSize);
+
+		MyPoints.Add(FVector2D(pointX, pointY));
+	}
+
+	for (const FVector2D Point : MyPoints)
+	{
+		DrawDebugPoint(GetWorld(), FVector(Point, 0.0f), 10.0f, FColor::Black, true);
+	}
+}
+

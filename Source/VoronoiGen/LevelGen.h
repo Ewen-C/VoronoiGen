@@ -9,6 +9,20 @@
 #include "CompGeom/Delaunay2.h"
 #include "LevelGen.generated.h"
 
+USTRUCT()
+struct FVoronoiEdge
+{
+	GENERATED_BODY()
+    int32 FromVertex;
+    int32 ToVertex;
+    float Length;
+    
+    bool operator > (const FVoronoiEdge& Other) const
+    {
+        return Length > Other.Length;
+    }
+};
+
 UCLASS()
 class VORONOIGEN_API ALevelGen : public AActor
 {
@@ -23,15 +37,22 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY()
 		USceneComponent* SceneComponent;
 
 	UFUNCTION()
-		void GenerateRandPoints(int NumberOfPoints, float SpacingSize);
-
-    UFUNCTION()
-		void DelaunayTriangulation(float SpacingSize);
+		void GenerateRandPoints(int NumberOfPoints);
 
 private:
-	TArray<FVector2D> PointCloud;
+    UPROPERTY(EditAnywhere, Category = "Generation")
+		int NbPoints = 50;
+	
+    UPROPERTY(EditAnywhere, Category = "Generation")
+		float SpacingSize = 2000;
+	
+	TArray<FVector2D> MyPoints;
+
+    TMap<int32, TArray<FVoronoiEdge>> AdjacencyList;
+    TArray<FVoronoiEdge> MinimumSpanningTree;
+	
 };
