@@ -10,14 +10,14 @@
 #include "LevelGen.generated.h"
 
 USTRUCT()
-struct FVoronoiEdge
+struct FGraphEdge
 {
 	GENERATED_BODY()
     int32 FromVertex;
     int32 ToVertex;
     float Length;
     
-    bool operator > (const FVoronoiEdge& Other) const
+    bool operator > (const FGraphEdge& Other) const
     {
         return Length > Other.Length;
     }
@@ -52,7 +52,7 @@ private:
 	
 	TArray<FVector2D> MyPoints;
 
-    TMap<int32, TArray<FVoronoiEdge>> AdjacencyList;
-    TArray<FVoronoiEdge> MinimumSpanningTree;
+    TMap<int32, TArray<FGraphEdge>> AdjacencyList;
+    TArray<FGraphEdge> MinimumSpanningTree;
 	
 };
