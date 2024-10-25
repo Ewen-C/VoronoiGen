@@ -113,6 +113,8 @@ void ALevelGen::BeginPlay()
 				PriorityQueue.HeapPush(NewEdges, [](const FGraphEdge& A, const FGraphEdge& B) { return A.Length < B.Length; });
         }
     }
+
+	// Not efficient to use AdjacencyList WITH PriorityQueue  ->  Use only 1 of the 2 !  
 	
     for (const FGraphEdge& Edge : MinimumSpanningTree)
     {
